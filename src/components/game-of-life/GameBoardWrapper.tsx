@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { GameBoard } from './GameBoard';
-import { GameBoardCanvas } from './GameBoardCanvas';
+import React from "react";
+import { GameBoard } from "./GameBoard";
+import { GameBoardCanvas } from "./GameBoardCanvas";
 
 interface GameBoardWrapperProps {
   width: number;
@@ -12,7 +12,7 @@ interface GameBoardWrapperProps {
   cellSize?: number;
 }
 
-const CANVAS_THRESHOLD = 50; // Use canvas for boards larger than 50x50
+const CANVAS_THRESHOLD = 50;
 
 export function GameBoardWrapper(props: GameBoardWrapperProps) {
   const { width, height } = props;

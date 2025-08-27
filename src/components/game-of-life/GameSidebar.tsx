@@ -1,12 +1,11 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Card, CardBody } from '@heroui/card';
-import { Tabs, Tab } from '@heroui/tabs';
-import { Play, Settings, HelpCircle } from 'lucide-react';
-import { GameControls } from './GameControls';
-import { BoardSettings } from './BoardSettings';
-import { Instructions } from './Instructions';
+import { Card, CardBody } from "@heroui/card";
+import { Tabs, Tab } from "@heroui/tabs";
+import { Play, Settings, HelpCircle } from "lucide-react";
+import { GameControls } from "./GameControls";
+import { BoardSettings } from "./BoardSettings";
+import { Instructions } from "./Instructions";
 
 interface GameSidebarProps {
   gameProps: {

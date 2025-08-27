@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { useGameOfLife } from '@/lib/game-of-life/hooks/useGameOfLife';
 import { GameBoardWrapper } from './GameBoardWrapper';
-import { GameSidebar } from './GameSidebar';
+import { GameSidebarWithBlockchain } from './GameSidebarWithBlockchain';
 
 export function GameOfLife() {
   const [boardSize, setBoardSize] = useState(30);
@@ -45,27 +45,32 @@ export function GameOfLife() {
           </div>
 
           <div className="w-[400px] flex-shrink-0">
-            <GameSidebar
-            gameProps={{
-              isPlaying: game.isPlaying,
-              generation: game.generation,
-              speed: game.speed,
-              canUndo: game.canUndo,
-              canRedo: game.canRedo,
-              onPlay: game.play,
-              onPause: game.pause,
-              onNext: game.next,
-              onPrevious: game.previous,
-              onClear: game.clear,
-              onSpeedChange: game.setSpeed,
-              onLoadPattern: game.loadPattern,
-              onGenerateRandom: game.generateRandom,
-              patterns: game.patterns
-            }}
-            boardSettings={{
-              boardSize,
-              onBoardSizeChange: setBoardSize
-            }}
+            <GameSidebarWithBlockchain
+              gameProps={{
+                isPlaying: game.isPlaying,
+                generation: game.generation,
+                speed: game.speed,
+                canUndo: game.canUndo,
+                canRedo: game.canRedo,
+                onPlay: game.play,
+                onPause: game.pause,
+                onNext: game.next,
+                onPrevious: game.previous,
+                onClear: game.clear,
+                onSpeedChange: game.setSpeed,
+                onLoadPattern: game.loadPattern,
+                onGenerateRandom: game.generateRandom,
+                patterns: game.patterns
+              }}
+              boardSettings={{
+                boardSize,
+                onBoardSizeChange: setBoardSize
+              }}
+              blockchainProps={{
+                boardSize,
+                cells: game.cells,
+                generation: game.generation
+              }}
             />
           </div>
         </div>

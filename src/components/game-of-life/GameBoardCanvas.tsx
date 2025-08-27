@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { useRef, useEffect, useCallback, memo } from 'react';
+import React, { useRef, useEffect, useCallback, memo } from "react";
 
 interface GameBoardCanvasProps {
   width: number;
@@ -15,7 +15,7 @@ export const GameBoardCanvas = memo(function GameBoardCanvas({
   height,
   cells,
   onCellClick,
-  cellSize = 20
+  cellSize = 20,
 }: GameBoardCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const requestRef = useRef<number>();
@@ -24,15 +24,13 @@ export const GameBoardCanvas = memo(function GameBoardCanvas({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Clear canvas
-    ctx.fillStyle = '#1A1F27'; // linera-background-light
+    ctx.fillStyle = "#1A1F27";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw grid lines
-    ctx.strokeStyle = '#252C37'; // linera-background-lighter
+    ctx.strokeStyle = "#252C37";
     ctx.lineWidth = 1;
 
     for (let x = 0; x <= width; x++) {
@@ -49,13 +47,12 @@ export const GameBoardCanvas = memo(function GameBoardCanvas({
       ctx.stroke();
     }
 
-    // Draw alive cells
-    ctx.fillStyle = '#DE2A02'; // linera-primary
-    ctx.shadowColor = 'rgba(222, 42, 2, 0.5)';
+    ctx.fillStyle = "#DE2A02";
+    ctx.shadowColor = "rgba(222, 42, 2, 0.5)";
     ctx.shadowBlur = 10;
 
     cells.forEach((_, key) => {
-      const [x, y] = key.split(',').map(Number);
+      const [x, y] = key.split(",").map(Number);
       if (x >= 0 && x < width && y >= 0 && y < height) {
         ctx.fillRect(
           x * cellSize + 1,
@@ -73,18 +70,21 @@ export const GameBoardCanvas = memo(function GameBoardCanvas({
     draw();
   }, [draw]);
 
-  const handleCanvasClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+  const handleCanvasClick = useCallback(
+    (event: React.MouseEvent<HTMLCanvasElement>) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const x = Math.floor((event.clientX - rect.left) / cellSize);
-    const y = Math.floor((event.clientY - rect.top) / cellSize);
+      const rect = canvas.getBoundingClientRect();
+      const x = Math.floor((event.clientX - rect.left) / cellSize);
+      const y = Math.floor((event.clientY - rect.top) / cellSize);
 
-    if (x >= 0 && x < width && y >= 0 && y < height) {
-      onCellClick(x, y);
-    }
-  }, [cellSize, width, height, onCellClick]);
+      if (x >= 0 && x < width && y >= 0 && y < height) {
+        onCellClick(x, y);
+      }
+    },
+    [cellSize, width, height, onCellClick]
+  );
 
   return (
     <canvas
@@ -94,8 +94,8 @@ export const GameBoardCanvas = memo(function GameBoardCanvas({
       className="cursor-pointer rounded-lg"
       onClick={handleCanvasClick}
       style={{
-        imageRendering: 'pixelated',
-        backgroundColor: '#1A1F27'
+        imageRendering: "pixelated",
+        backgroundColor: "#1A1F27",
       }}
     />
   );
