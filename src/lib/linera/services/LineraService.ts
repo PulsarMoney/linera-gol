@@ -72,7 +72,7 @@ export class LineraService {
         const chainId = await faucet.claimChain(wallet, owner);
 
         // Create client and claim chain
-        this.client = new linera.Client(wallet, signer);
+        this.client = await new linera.Client(wallet, signer);
 
         // Store wallet info
         localStorage.setItem("linera_chain_id", chainId);
@@ -88,7 +88,7 @@ export class LineraService {
         console.log("Found existing wallet");
 
         // Create client with existing wallet
-        this.client = new linera.Client(wallet, signer);
+        this.client = await new linera.Client(wallet, signer);
 
         // Get stored wallet info
         const storedChainId = localStorage.getItem("linera_chain_id");
