@@ -16,5 +16,12 @@ export default defineConfig({
   assetsInclude: ["**/*.wasm"],
   build: {
     target: "esnext",
+    rollupOptions: {
+      input: {
+        index: 'index.html',
+        linera: '@linera/client',
+      },
+      preserveEntrySignatures: 'strict',
+    },
   },
 });
