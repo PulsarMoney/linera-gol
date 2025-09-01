@@ -30,6 +30,7 @@ export interface WalletInfo {
 export class LineraService {
   private static instance: LineraService | null = null;
   private client: linera.Client | null = null;
+  private backend: linera.Application | null = null;
   private initialized = false;
   private walletInfo: WalletInfo | null = null;
 
@@ -102,8 +103,7 @@ export class LineraService {
         }
       }
 
-      // TODO: Enable when ready to use backend
-      // this.backend = await this.client.frontend().application(LineraService.GOL_APP_ID);
+      this.backend = await this.client.frontend().application(LineraService.GOL_APP_ID);
 
       this.initialized = true;
       console.log("Linera service initialized successfully");
