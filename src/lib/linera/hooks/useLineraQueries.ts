@@ -16,7 +16,7 @@ const QUERY_KEYS = {
 
 const initializeService = async () => {
     const service = LineraService.getInstance();
-    await new Promise(f => setTimeout(f, 1000));
+    await new Promise(f => setTimeout(f, 100));
     await service.initialize();
     return true;
 };
