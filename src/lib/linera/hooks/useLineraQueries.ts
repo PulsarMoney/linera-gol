@@ -14,14 +14,11 @@ const QUERY_KEYS = {
   initialized: ["linera", "initialized"],
 };
 
-let serviceInitialized = false;
 const initializeService = async () => {
-  if (!serviceInitialized) {
     const service = LineraService.getInstance();
+    await new Promise(f => setTimeout(f, 100));
     await service.initialize();
-    serviceInitialized = true;
-  }
-  return true;
+    return true;
 };
 
 export function useLineraInitialization() {

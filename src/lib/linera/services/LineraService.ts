@@ -1,4 +1,6 @@
-import * as linera from "@linera/client";
+import * as linera from '@linera/client';
+import { PrivateKey } from '@linera/signer';
+import { ethers } from 'ethers';
 
 export interface LineraBoard {
   size: number;
@@ -28,6 +30,7 @@ export interface WalletInfo {
 export class LineraService {
   private static instance: LineraService | null = null;
   private client: linera.Client | null = null;
+  private backend: linera.Application | null = null;
   private initialized = false;
   private walletInfo: WalletInfo | null = null;
 
@@ -35,7 +38,7 @@ export class LineraService {
   private static readonly GOL_APP_ID =
     "1aa3d7ffbe5f3f8b0459cf4066992ad5874f51def7a9164f3fe9fffc1c9b5e1a";
   private static readonly FAUCET_URL =
-    "https://faucet.testnet-babbage.linera.net";
+    "https://faucet.devnet-2025-08-21.linera.net/";
 
   private constructor() {}
 
@@ -55,19 +58,22 @@ export class LineraService {
       // Initialize Linera WebAssembly
       await linera.default();
 
-      // Try to read existing wallet from browser storage
-      let wallet = await linera.Wallet.read();
+      // TODO: Try to read existing wallet from browser storage
+      let wallet;
+      // TODO: Support connecting to an already existing signer.
+      let signer = PrivateKey.fromMnemonic(ethers.Wallet.createRandom().mnemonic.phrase);
+      const owner = await signer.address();
 
       if (!wallet) {
         console.log("No wallet found, creating new wallet from faucet...");
 
         // Create faucet and get new wallet
         const faucet = new linera.Faucet(LineraService.FAUCET_URL);
-        wallet = await faucet.createWallet();
+        const wallet = await faucet.createWallet();
+        const chainId = await faucet.claimChain(wallet, owner);
 
         // Create client and claim chain
-        this.client = new linera.Client(wallet);
-        const chainId = await faucet.claimChain(this.client);
+        this.client = await new linera.Client(wallet, signer);
 
         // Store wallet info
         localStorage.setItem("linera_chain_id", chainId);
@@ -83,7 +89,7 @@ export class LineraService {
         console.log("Found existing wallet");
 
         // Create client with existing wallet
-        this.client = new linera.Client(wallet);
+        this.client = await new linera.Client(wallet, signer);
 
         // Get stored wallet info
         const storedChainId = localStorage.getItem("linera_chain_id");
@@ -97,8 +103,7 @@ export class LineraService {
         }
       }
 
-      // TODO: Enable when ready to use backend
-      // this.backend = await this.client.frontend().application(LineraService.GOL_APP_ID);
+      this.backend = await this.client.frontend().application(LineraService.GOL_APP_ID);
 
       this.initialized = true;
       console.log("Linera service initialized successfully");
@@ -111,11 +116,13 @@ export class LineraService {
   async checkWallet(): Promise<WalletInfo | null> {
     try {
       await linera.default();
-      const wallet = await linera.Wallet.read();
+      // TODO: Bring back once recovering wallets from
+      // the storage is implemented.
+      // const wallet = await linera.Wallet.read();
 
-      if (!wallet) {
-        return null;
-      }
+      // if (!wallet) {
+      //   return null;
+      // }
 
       const storedChainId = localStorage.getItem("linera_chain_id");
       const createdAt = localStorage.getItem("linera_wallet_created");
