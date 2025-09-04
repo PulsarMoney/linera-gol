@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardBody, CardHeader } from '@heroui/card';
 import { Button } from '@heroui/button';
 import { Spinner } from '@heroui/spinner';
@@ -6,6 +7,7 @@ import { useLineraInitialization, useWallet } from '../lib/linera/hooks/useLiner
 import { LineraService } from '@/lib/linera/services/LineraService';
 
 export function Initialize() {
+  const navigate = useNavigate();
   const { isSuccess: isInitialized, isLoading: isInitializing, error: initError, refetch: retryInit } = useLineraInitialization();
   const { data: wallet, isLoading: isCheckingWallet, refetch: recheckWallet } = useWallet();
   const [logs, setLogs] = useState<string[]>([]);
@@ -118,7 +120,38 @@ export function Initialize() {
 
       <Card className="bg-linera-background-light border border-linera-background-lighter mb-6">
         <CardHeader>
-          <h2 className="text-xl font-semibold text-linera-text">Actions</h2>
+          <h2 className="text-xl font-semibold text-linera-text">Game Modes</h2>
+        </CardHeader>
+        <CardBody>
+          <div className="flex flex-wrap gap-3 mb-4">
+            <Button
+              color="success"
+              variant="solid"
+              size="lg"
+              onPress={() => navigate('/puzzles')}
+              isDisabled={!isInitialized}
+            >
+              🧩 Play Puzzles
+            </Button>
+            <Button
+              color="primary"
+              variant="flat"
+              size="lg"
+              onPress={() => navigate('/game')}
+              isDisabled={!isInitialized}
+            >
+              🎮 Free Play Mode
+            </Button>
+          </div>
+          {!isInitialized && (
+            <p className="text-sm text-linera-text-muted">Initialize wallet to start playing</p>
+          )}
+        </CardBody>
+      </Card>
+
+      <Card className="bg-linera-background-light border border-linera-background-lighter mb-6">
+        <CardHeader>
+          <h2 className="text-xl font-semibold text-linera-text">Wallet Actions</h2>
         </CardHeader>
         <CardBody>
           <div className="flex flex-wrap gap-3">

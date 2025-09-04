@@ -1,6 +1,6 @@
-import * as linera from '@linera/client';
-import { PrivateKey } from '@linera/signer';
-import { ethers } from 'ethers';
+import * as linera from "@linera/client";
+import { PrivateKey } from "@linera/signer";
+import { ethers } from "ethers";
 
 export interface LineraBoard {
   size: number;
@@ -34,9 +34,9 @@ export class LineraService {
   private initialized = false;
   private walletInfo: WalletInfo | null = null;
 
-  // Game of Life  app Id but its not used yet
+  // Game of Life app Id
   private static readonly GOL_APP_ID =
-    "1aa3d7ffbe5f3f8b0459cf4066992ad5874f51def7a9164f3fe9fffc1c9b5e1a";
+    "7af5cee9ec7593af74077e36f92355faf738985b32d27b39c51c7e48389ca8d0";
   private static readonly FAUCET_URL =
     "https://faucet.devnet-2025-08-21.linera.net/";
 
@@ -61,49 +61,57 @@ export class LineraService {
       // TODO: Try to read existing wallet from browser storage
       let wallet;
       // TODO: Support connecting to an already existing signer.
-      let signer = PrivateKey.fromMnemonic(ethers.Wallet.createRandom().mnemonic.phrase);
+      const randomWallet = ethers.Wallet.createRandom();
+      if (!randomWallet.mnemonic) {
+        throw new Error("Failed to generate mnemonic");
+      }
+      let signer = PrivateKey.fromMnemonic(randomWallet.mnemonic.phrase);
       const owner = await signer.address();
 
-      if (!wallet) {
-        console.log("No wallet found, creating new wallet from faucet...");
+      // if (!wallet) {
+      console.log("No wallet found, creating new wallet from faucet...");
 
-        // Create faucet and get new wallet
-        const faucet = new linera.Faucet(LineraService.FAUCET_URL);
-        const wallet = await faucet.createWallet();
-        const chainId = await faucet.claimChain(wallet, owner);
+      // Create faucet and get new wallet
+      const faucet = new linera.Faucet(LineraService.FAUCET_URL);
+      wallet = await faucet.createWallet();
+      const chainId = await faucet.claimChain(wallet, owner);
 
-        // Create client and claim chain
-        this.client = await new linera.Client(wallet, signer);
+      // Create client with wallet and signer
+      this.client = new linera.Client(wallet, signer);
 
-        // Store wallet info
-        localStorage.setItem("linera_chain_id", chainId);
-        localStorage.setItem("linera_wallet_created", new Date().toISOString());
+      // Store wallet info
+      localStorage.setItem("linera_chain_id", chainId);
+      localStorage.setItem("linera_wallet_created", new Date().toISOString());
 
-        this.walletInfo = {
-          chainId,
-          createdAt: new Date().toISOString(),
-        };
+      this.walletInfo = {
+        chainId,
+        createdAt: new Date().toISOString(),
+      };
 
-        console.log("Wallet created successfully. Chain ID:", chainId);
-      } else {
-        console.log("Found existing wallet");
+      console.log("Wallet created successfully. Chain ID:", chainId);
+      // } else {
+      //   console.log("Found existing wallet");
 
-        // Create client with existing wallet
-        this.client = await new linera.Client(wallet, signer);
+      //   // Create client with existing wallet IMPORTANT: await is needed here because new Client returns a promise
+      //   this.client = await new linera.Client(wallet, signer);
 
-        // Get stored wallet info
-        const storedChainId = localStorage.getItem("linera_chain_id");
-        const storedCreatedAt = localStorage.getItem("linera_wallet_created");
+      //   // Get stored wallet info
+      //   const storedChainId = localStorage.getItem("linera_chain_id");
+      //   const storedCreatedAt = localStorage.getItem("linera_wallet_created");
 
-        if (storedChainId) {
-          this.walletInfo = {
-            chainId: storedChainId,
-            createdAt: storedCreatedAt || new Date().toISOString(),
-          };
-        }
-      }
+      //   if (storedChainId) {
+      //     this.walletInfo = {
+      //       chainId: storedChainId,
+      //       createdAt: storedCreatedAt || new Date().toISOString(),
+      //     };
+      //   }
+      // }
 
-      this.backend = await this.client.frontend().application(LineraService.GOL_APP_ID);
+      console.log("Got client", await this.client);
+      this.backend = await (await this.client)
+        .frontend()
+        .application(LineraService.GOL_APP_ID);
+      console.log("Got backend", this.backend);
 
       this.initialized = true;
       console.log("Linera service initialized successfully");
@@ -141,15 +149,32 @@ export class LineraService {
     }
   }
 
-  // Backend operations are disabled for now
   private async ensureInitialized(): Promise<void> {
-    throw new Error("Backend operations are disabled");
+    if (!this.initialized || !this.client || !this.backend) {
+      throw new Error("Linera service not initialized");
+    }
   }
 
   async visualizeBoard(board: LineraBoard): Promise<string> {
     await this.ensureInitialized();
-    // Implementation disabled
-    throw new Error("Backend operations are disabled");
+
+    const query = {
+      query: `
+        query PrintBoard($board: BoardInput!) {
+          printBoard(board: $board)
+        }
+      `,
+      variables: { board },
+    };
+
+    const response = await this.backend!.query(JSON.stringify(query));
+    const result = JSON.parse(response);
+
+    if (result.errors) {
+      throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
+    }
+
+    return result.data.printBoard;
   }
 
   async advanceBoard(
@@ -157,34 +182,141 @@ export class LineraService {
     steps: number = 1
   ): Promise<LineraBoard> {
     await this.ensureInitialized();
-    // Implementation disabled
-    throw new Error("Backend operations are disabled");
+
+    const query = {
+      query: `
+        query AdvanceBoard($board: BoardInput!, $steps: Int!) {
+          advanceBoard(board: $board, steps: $steps) {
+            size
+            liveCells {
+              x
+              y
+            }
+          }
+        }
+      `,
+      variables: { board, steps },
+    };
+
+    const response = await this.backend!.query(JSON.stringify(query));
+    const result = JSON.parse(response);
+
+    if (result.errors) {
+      throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
+    }
+
+    return result.data.advanceBoard;
   }
 
   async validateSolution(
     board: LineraBoard,
-    puzzleId: string,
-    steps: number
+    puzzleId: string
   ): Promise<ValidationResult> {
     await this.ensureInitialized();
-    // Implementation disabled
-    throw new Error("Backend operations are disabled");
+
+    const query = {
+      query: `
+        query ValidateSolution($board: BoardInput!, $puzzleId: String!) {
+          validateSolution(board: $board, puzzleId: $puzzleId) {
+            isValidAfterSteps
+            errorMessage
+          }
+        }
+      `,
+      variables: { board, puzzleId },
+    };
+
+    const response = await this.backend!.query(JSON.stringify(query));
+    const result = JSON.parse(response);
+
+    if (result.errors) {
+      throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
+    }
+
+    const validation = result.data.validateSolution;
+
+    return {
+      isValid: validation.isValidAfterSteps !== null,
+      errorMessage: validation.errorMessage,
+    };
   }
 
-  async submitSolution(
-    puzzleId: string,
-    board: LineraBoard,
-    steps: number
-  ): Promise<boolean> {
+  async submitSolution(puzzleId: string, board: LineraBoard): Promise<boolean> {
     await this.ensureInitialized();
-    // Implementation disabled
-    throw new Error("Backend operations are disabled");
+
+    try {
+      // Use the backend.query method for mutations as per Linera docs
+      const mutation = {
+        query: `
+          mutation SubmitSolution($puzzleId: String!, $board: BoardInput!) {
+            submitSolution(puzzleId: $puzzleId, board: $board)
+          }
+        `,
+        variables: { puzzleId, board },
+      };
+
+      const response = await this.backend!.query(JSON.stringify(mutation));
+      const result = JSON.parse(response);
+
+      if (result.errors) {
+        throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Failed to submit solution:", error);
+      return false;
+    }
   }
 
   async getPuzzle(puzzleId: string): Promise<Puzzle | null> {
     await this.ensureInitialized();
-    // Implementation disabled
-    throw new Error("Backend operations are disabled");
+    if (!this.backend) {
+      throw new Error("Backend not initialized");
+    }
+
+    try {
+      const query = {
+        query: `
+          query GetPuzzle($puzzleId: String!) {
+            puzzle(puzzleId: $puzzleId) {
+              title
+              summary
+              difficulty
+              size
+              minimalSteps
+              maximalSteps
+            }
+          }
+        `,
+        variables: { puzzleId },
+      };
+
+      const response = await this.backend.query(JSON.stringify(query));
+      console.log("[GOL] Got response from getPuzzle", response);
+      const result = JSON.parse(response);
+
+      if (result.errors) {
+        throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
+      }
+
+      if (!result.data?.puzzle) {
+        return null;
+      }
+
+      return {
+        id: puzzleId,
+        title: result.data.puzzle.title,
+        summary: result.data.puzzle.summary,
+        difficulty: result.data.puzzle.difficulty as "Easy" | "Medium" | "Hard",
+        size: result.data.puzzle.size,
+        minimalSteps: result.data.puzzle.minimalSteps,
+        maximalSteps: result.data.puzzle.maximalSteps,
+      };
+    } catch (error) {
+      console.error("Failed to get puzzle:", error);
+      return null;
+    }
   }
 
   onNotification(callback: (notification: any) => void): void {

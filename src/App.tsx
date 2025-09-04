@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import { Providers } from './providers';
 import { fontSans } from './config/fonts';
 import { GameOfLife } from './components/game-of-life/GameOfLife';
+import { PuzzleGame } from './components/puzzles/PuzzleGame';
 import { Initialize } from './pages/Initialize';
 
 function App() {
@@ -17,8 +18,9 @@ function App() {
       <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
         <div className="relative flex flex-col h-screen">
           <Routes>
-            <Route path="/" element={<GameOfLife />} />
-            <Route path="/initialize" element={<Initialize />} />
+            <Route path="/" element={<Initialize />} />
+            <Route path="/game" element={<GameOfLife />} />
+            <Route path="/puzzles" element={<PuzzleGame />} />
           </Routes>
         </div>
       </Providers>
